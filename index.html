@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroCampo Venezuela - Mercado Agrícola y Sistema de Distribuidores</title>
+    <title>AgroCampo Venezuela - Sistema de Distribuidores y Mercado Agrícola</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -53,25 +53,25 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col selection:bg-agro-500 selection:text-white">
 
-    <!-- Top Security & Status Bar -->
+    <!-- Role Switcher & BCV Bar -->
     <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
             <div class="flex items-center space-x-3">
                 <span class="inline-flex items-center gap-1 font-semibold text-agro-400">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i> Conexión Encriptada & Segura:
+                    <i data-lucide="shield" class="w-3.5 h-3.5"></i> Control de Sesión:
                 </span>
-                <span id="current-user-display" class="bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full font-bold border border-slate-700">
-                    Modo Visitante
+                <span id="current-role-indicator" class="bg-agro-500/20 text-agro-300 px-2 py-0.5 rounded-full font-bold border border-agro-500/30">
+                    Invitado / Comprador
                 </span>
             </div>
 
-            <!-- Auth Buttons -->
-            <div class="flex items-center space-x-2" id="header-auth-controls">
-                <button onclick="openModal('modal-auth')" class="bg-agro-600 hover:bg-agro-500 text-white font-bold px-3 py-1 rounded-lg text-[11px] flex items-center gap-1 transition">
-                    <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Iniciar Sesión / Registrarse
+            <!-- Quick Testing Controls -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openModal('modal-auth')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Iniciar Sesión / Registro
                 </button>
-                <button onclick="openAdminLoginModal()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
-                    <i data-lucide="lock" class="w-3.5 h-3.5"></i> Portal Administrador
+                <button onclick="quickSwitchAdmin()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1 rounded-lg text-[11px] font-extrabold flex items-center gap-1 transition">
+                    <i data-lucide="key-round" class="w-3.5 h-3.5"></i> Entrar como Admin
                 </button>
             </div>
         </div>
@@ -99,7 +99,7 @@
                 <div id="producer-status-btn-area">
                     <button onclick="openModal('modal-auth')" class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shadow-sm bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-100">
                         <i data-lucide="award" class="w-4 h-4 text-amber-600"></i>
-                        <span class="hidden sm:inline">Membresía Distribuidor ($5/mes)</span>
+                        <span class="hidden sm:inline">Membresía Productor ($5/mes)</span>
                     </button>
                 </div>
 
@@ -114,7 +114,7 @@
     <!-- Main Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- ADMIN DASHBOARD PANEL (Protegido por Clave de Administrador) -->
+        <!-- ADMIN DASHBOARD PANEL (Visible when logged in as Admin) -->
         <div id="admin-dashboard-view" class="hidden bg-slate-900 border-2 border-amber-500 text-white rounded-3xl p-6 shadow-2xl space-y-5">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
                 <div class="flex items-center space-x-3">
@@ -122,27 +122,27 @@
                         <i data-lucide="shield-check" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <h2 class="text-base font-extrabold text-amber-400">PANEL ADMINISTRADOR CENTRAL (PROTEGIDO)</h2>
-                        <p class="text-xs text-slate-400">Gestión Encriptada de Pagos y Verificación de Distribuidores</p>
+                        <h2 class="text-base font-extrabold text-amber-400">PANEL ADMINISTRADOR CENTRAL</h2>
+                        <p class="text-xs text-slate-400">Aprobación de Distribuidores y Control de la Plataforma</p>
                     </div>
                 </div>
                 
                 <div class="flex items-center space-x-2">
                     <button onclick="switchAdminTab('pending')" id="tab-btn-pending" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950">
-                        Pagos por Verificar (<span id="admin-pending-count">0</span>)
+                        Solicitudes Pendientes (<span id="admin-pending-count">0</span>)
                     </button>
                     <button onclick="switchAdminTab('approved')" id="tab-btn-approved" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
                         Distribuidores Activos (<span id="admin-active-count">0</span>)
                     </button>
-                    <button onclick="logoutSession()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 border border-rose-500/30">
-                        Cerrar Sesión Admin
+                    <button onclick="logoutUser()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 border border-rose-500/30">
+                        Salir Admin
                     </button>
                 </div>
             </div>
 
             <!-- Tab Content: Pending Requests -->
             <div id="admin-tab-pending" class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Solicitudes de Membresía por Validar (Pago Móvil $5)</h3>
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Solicitudes de Membresía por Verificar (Pago Móvil $5)</h3>
                 <div id="admin-pending-list" class="space-y-2">
                     <!-- Injected via JS -->
                 </div>
@@ -157,7 +157,7 @@
             </div>
         </div>
 
-        <!-- PRODUCER STATUS CARD (Información de Estado para Distribuidor) -->
+        <!-- PRODUCER STATUS BANNER (Visible for logged-in producers) -->
         <div id="producer-status-card" class="hidden rounded-3xl p-5 border space-y-3">
             <!-- Dynamic Content based on pending/approved -->
         </div>
@@ -177,7 +177,7 @@
                     </button>
                 </div>
                 <div class="text-xs text-slate-500 font-medium">
-                    Publicaciones activas en tiempo real: <strong id="product-count" class="text-slate-900 dark:text-white font-bold">0</strong>
+                    Publicaciones activas: <strong id="product-count" class="text-slate-900 dark:text-white font-bold">0</strong>
                 </div>
             </div>
 
@@ -204,7 +204,7 @@
             </div>
         </div>
 
-        <!-- Products Grid (Publicaciones en Tiempo Real) -->
+        <!-- Products Grid -->
         <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             <!-- Injected via JS -->
         </div>
@@ -214,13 +214,13 @@
             <div class="w-16 h-16 bg-agro-50 dark:bg-agro-950 rounded-full flex items-center justify-center mx-auto text-agro-600">
                 <i data-lucide="package-search" class="w-8 h-8"></i>
             </div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Sin publicaciones disponibles</h3>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">Las publicaciones registradas aparecerán aquí en tiempo real.</p>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Sin ofertas por el momento</h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">No hay publicaciones con estos filtros en este momento.</p>
         </div>
 
     </main>
 
-    <!-- MODAL 1: Login & Encripted Registration Selector -->
+    <!-- MODAL 1: Login & Registration Selector -->
     <div id="modal-auth" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl relative space-y-4">
             <button onclick="closeModal('modal-auth')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -228,107 +228,66 @@
             </button>
 
             <div class="text-center space-y-1">
-                <div class="w-10 h-10 bg-agro-500/10 text-agro-600 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-agro-500/20">
-                    <i data-lucide="user-check" class="w-5 h-5"></i>
-                </div>
                 <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Acceso a AgroCampo</h3>
-                <p class="text-xs text-slate-500">Inicia sesión o regístrate con tu usuario y clave encriptada</p>
+                <p class="text-xs text-slate-500">Selecciona tu tipo de cuenta</p>
             </div>
 
-            <!-- Tabs Login vs Registro -->
+            <!-- Tabs Auth -->
             <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-bold">
-                <button onclick="switchAuthTab('login')" id="tab-auth-login" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm">
-                    Iniciar Sesión
+                <button onclick="switchAuthMode('producer')" id="auth-tab-producer" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm">
+                    Productor / Distribuidor
                 </button>
-                <button onclick="switchAuthTab('register')" id="tab-auth-reg" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white">
-                    Nuevo Registro
+                <button onclick="switchAuthMode('admin')" id="auth-tab-admin" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900">
+                    Administrador
                 </button>
             </div>
 
-            <!-- Form 1: Producer Login -->
-            <form id="form-login-producer" onsubmit="handleProducerLogin(event)" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Correo Electrónico o Usuario:</label>
-                    <input type="email" id="login-email" required placeholder="tu-correo@ejemplo.com" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Contraseña Encriptada:</label>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-2">
-                    <i data-lucide="log-in" class="w-4 h-4"></i> Entrar a mi Cuenta
-                </button>
-            </form>
-
-            <!-- Form 2: Producer Secure Register -->
-            <form id="form-register-producer" onsubmit="handleProducerRegister(event)" class="hidden space-y-3">
+            <!-- Producer Form -->
+            <form id="form-auth-producer" onsubmit="handleProducerRegister(event)" class="space-y-3">
                 <div>
                     <label class="block text-[11px] font-semibold mb-1">Nombre Completo o Empresa / Finca:</label>
                     <input type="text" id="reg-name" required placeholder="Ej: Finca San José / Carlos Mendoza" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-semibold mb-1">Correo Electrónico (Será tu Usuario):</label>
-                    <input type="email" id="reg-email" required placeholder="ejemplo@agrocampo.ve" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
+                    <label class="block text-[11px] font-semibold mb-1">Cédula o RIF:</label>
+                    <input type="text" id="reg-ci" required placeholder="Ej: V-18234567" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-semibold mb-1">Contraseña Secreta:</label>
-                    <input type="password" id="reg-password" minlength="6" required placeholder="Mínimo 6 caracteres" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Cédula o RIF:</label>
-                        <input type="text" id="reg-ci" required placeholder="V-18234567" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Estado de Venezuela:</label>
-                        <select id="reg-state" required class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                            <!-- Injected -->
-                        </select>
-                    </div>
+                    <label class="block text-[11px] font-semibold mb-1">Estado de Venezuela:</label>
+                    <select id="reg-state" required class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
+                        <!-- Injected -->
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-semibold mb-1">WhatsApp Directo para Ventas (Ej: 04264601981):</label>
-                    <input type="tel" id="reg-phone" required placeholder="04264601981" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
+                    <label class="block text-[11px] font-semibold mb-1">Teléfono WhatsApp de Contacto:</label>
+                    <input type="tel" id="reg-phone" required placeholder="Ej: 04264601981" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition">
-                    Crear Cuenta Encriptada
+                    Registrarme como Productor
+                </button>
+            </form>
+
+            <!-- Admin Login Form -->
+            <form id="form-auth-admin" onsubmit="handleAdminLogin(event)" class="hidden space-y-3">
+                <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-600 dark:text-amber-400">
+                    Credencial predeterminada: <strong>admin@agrocampo.ve</strong> / Clave: <strong>26603499</strong>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold mb-1">Usuario / Email Admin:</label>
+                    <input type="text" id="admin-user" required value="admin@agrocampo.ve" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold mb-1">Clave de Acceso:</label>
+                    <input type="password" id="admin-pass" required value="26603499" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs transition">
+                    Ingresar como Administrador
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 2: Modal Especial Login Administrador Central -->
-    <div id="modal-admin-auth" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 rounded-3xl border-2 border-amber-500/80 max-w-md w-full p-6 shadow-2xl relative space-y-4 text-white">
-            <button onclick="closeModal('modal-admin-auth')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/40">
-                    <i data-lucide="shield-lock" class="w-6 h-6"></i>
-                </div>
-                <h3 class="text-lg font-extrabold text-amber-400 uppercase tracking-wider">Acceso Exclusivo Administrador</h3>
-                <p class="text-xs text-slate-400">Ingresa tus credenciales maestras para aprobar o rechazar distribuidores.</p>
-            </div>
-
-            <form id="form-auth-admin" onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Usuario Administrador:</label>
-                    <input type="text" id="admin-username" required placeholder="admin" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:border-amber-400 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Contraseña Maestra:</label>
-                    <input type="password" id="admin-password" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:border-amber-400 focus:outline-none">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs transition flex items-center justify-center gap-2">
-                    <i data-lucide="key" class="w-4 h-4"></i> Autenticar Panel Administrador
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: Membership Pago Movil Payment details -->
+    <!-- MODAL 2: Membership Pago Movil Payment details -->
     <div id="modal-membership" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl relative space-y-4">
             <button onclick="closeModal('modal-membership')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
@@ -341,7 +300,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Pago de Membresía ($5/mes)</h3>
-                    <p class="text-xs text-amber-600 font-semibold">Reporte Exclusivo por Pago Móvil</p>
+                    <p class="text-xs text-amber-600 font-semibold">Exclusivo por Pago Móvil</p>
                 </div>
             </div>
 
@@ -376,7 +335,7 @@
         </div>
     </div>
 
-    <!-- MODAL 4: Product Post Modal (Sólo Habilitado para Distribuidores Aprobados por Admin) -->
+    <!-- MODAL 3: Product Post Modal (Available only when Producer is Approved) -->
     <div id="modal-post" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-post')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
@@ -388,8 +347,8 @@
                     <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Publicar Cosecha / Rubro en Tiempo Real</h3>
-                    <p class="text-xs text-emerald-600 font-semibold">Distribuidor Aprobado & Autorizado</p>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Publicar Cosecha / Rubro</h3>
+                    <p class="text-xs text-emerald-600 font-semibold">Productor Autorizado</p>
                 </div>
             </div>
 
@@ -439,8 +398,8 @@
                     <textarea id="post-desc" rows="3" required placeholder="Indica cantidad total disponible o zona de despacho..." class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs"></textarea>
                 </div>
 
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-2">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Publicar Inmediatamente en Tiempo Real
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition">
+                    Publicar Producto en Tiempo Real
                 </button>
             </form>
         </div>
@@ -458,7 +417,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // App & Database Setup
+        // Global Setup
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'agrocampo-ve-app';
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
@@ -468,21 +427,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // System Constants
-        const BCV_RATE = 36.50;
-        const ADMIN_PHONE = "584264601981";
-        
-        // Admin credentials default (stored hashed for security)
-        const DEFAULT_ADMIN_USER = "admin";
-        const DEFAULT_ADMIN_PASS_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // SHA-256 for 'admin123'
-
-        // Active State variables
-        let fbUser = null;
-        let currentUserSession = null; // { email, name, role: 'admin'|'producer', status: 'pending'|'approved'|'rejected', phone, ci, state }
+        // State variables
+        let currentUser = null;
+        let userRole = 'guest'; // 'guest', 'admin', 'producer'
+        let currentProducerProfile = null;
         
         let allProducers = [];
         let allProducts = [];
         let currentTradeFilter = 'all';
+        const BCV_RATE = 36.50;
+        const ADMIN_PHONE = "584264601981";
 
         const VENEZUELA_STATES = [
             "Amazonas", "Anzoátegui", "Apure", "Aragua", "Barinas", "Bolívar",
@@ -491,20 +445,10 @@
             "Portuguesa", "Sucre", "Táchira", "Trujillo", "La Guaira", "Yaracuy", "Zulia"
         ];
 
-        // Crypto helper for password hashing (SHA-256)
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password + "_agro_salt_2026");
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
         window.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             populateStates();
             setupFirebase();
-            loadLocalSession();
         });
 
         async function setupFirebase() {
@@ -520,10 +464,38 @@
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    fbUser = user;
+                    currentUser = user;
                     startFirestoreSync();
                 }
             });
+        }
+
+        // Firestore Sync with Path Compliance (RULE 1: /artifacts/{appId}/public/data/...)
+        function startFirestoreSync() {
+            if (!currentUser) return;
+
+            // 1. Sync Producers Collection
+            const producersCol = collection(db, 'artifacts', appId, 'public', 'data', 'producers');
+            onSnapshot(producersCol, (snap) => {
+                allProducers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Update active user profile state
+                if (userRole === 'producer') {
+                    currentProducerProfile = allProducers.find(p => p.userId === currentUser.uid);
+                    renderProducerStatusBanner();
+                }
+
+                if (userRole === 'admin') {
+                    renderAdminDashboard();
+                }
+            }, err => console.error(err));
+
+            // 2. Sync Products Collection
+            const productsCol = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+            onSnapshot(productsCol, (snap) => {
+                allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                applyFilters();
+            }, err => console.error(err));
         }
 
         function populateStates() {
@@ -536,204 +508,42 @@
             });
         }
 
-        // Firestore Sync in Real Time
-        function startFirestoreSync() {
-            if (!fbUser) return;
-
-            // 1. Sync Producers Collection
-            const producersCol = collection(db, 'artifacts', appId, 'public', 'data', 'producers');
-            onSnapshot(producersCol, (snap) => {
-                allProducers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Refresh current producer profile if logged in
-                if (currentUserSession && currentUserSession.role === 'producer') {
-                    const found = allProducers.find(p => p.email === currentUserSession.email);
-                    if (found) {
-                        currentUserSession = { ...currentUserSession, ...found };
-                        saveLocalSession();
-                    }
-                }
-
-                updateRoleUI();
-            }, err => console.error(err));
-
-            // 2. Sync Products Collection (Tiempo Real)
-            const productsCol = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-            onSnapshot(productsCol, (snap) => {
-                allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort by newest first
-                allProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                applyFilters();
-            }, err => console.error(err));
-        }
-
-        // User Auth Handlers
-        window.handleProducerRegister = async (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim().toLowerCase();
-            const password = document.getElementById('reg-password').value;
-            const ci = document.getElementById('reg-ci').value.trim();
-            const state = document.getElementById('reg-state').value;
-            const phone = document.getElementById('reg-phone').value.trim();
-
-            const passHash = await hashPassword(password);
-            const userDocId = 'user-' + btoa(email).replace(/=/g, '');
-            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', userDocId);
-
-            const producerData = {
-                id: userDocId,
-                name: name,
-                email: email,
-                passwordHash: passHash,
-                ci: ci,
-                state: state,
-                phone: phone,
-                role: 'producer',
-                status: 'pending',
-                paymentRef: '',
-                createdAt: new Date().toISOString()
-            };
-
-            try {
-                await setDoc(producerDocRef, producerData);
-                currentUserSession = producerData;
-                saveLocalSession();
-                closeModal('modal-auth');
-                updateRoleUI();
-                openModal('modal-membership');
-                showToast("Cuenta creada exitosamente. Por favor reporta tu Pago Móvil de $5.");
-            } catch (err) {
-                console.error(err);
-                showToast("Error al registrar el usuario");
-            }
-        };
-
-        window.handleProducerLogin = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-
-            const inputHash = await hashPassword(password);
-            const user = allProducers.find(p => p.email === email);
-
-            if (!user) {
-                alert("Usuario no encontrado. Por favor regístrate.");
-                return;
-            }
-
-            if (user.passwordHash !== inputHash) {
-                alert("Contraseña incorrecta. Inténtalo de nuevo.");
-                return;
-            }
-
-            currentUserSession = user;
-            saveLocalSession();
-            closeModal('modal-auth');
+        // User Role Management
+        window.quickSwitchAdmin = () => {
+            userRole = 'admin';
             updateRoleUI();
-            showToast(`¡Bienvenido de nuevo, ${user.name}!`);
+            showToast("Acceso como Administrador activado");
         };
 
-        window.openAdminLoginModal = () => {
-            openModal('modal-admin-auth');
-        };
-
-        window.handleAdminLoginSubmit = async (e) => {
-            e.preventDefault();
-            const user = document.getElementById('admin-username').value.trim();
-            const pass = document.getElementById('admin-password').value;
-
-            const inputHash = await hashPassword(pass);
-
-            if (user === DEFAULT_ADMIN_USER && inputHash === DEFAULT_ADMIN_PASS_HASH) {
-                currentUserSession = {
-                    name: "Administrador Central",
-                    email: "admin@agrocampo.ve",
-                    role: "admin"
-                };
-                saveLocalSession();
-                closeModal('modal-admin-auth');
-                updateRoleUI();
-                showToast("Acceso Administrador concedido");
-            } else {
-                alert("Credenciales de Administrador incorrectas.");
-            }
-        };
-
-        window.logoutSession = () => {
-            currentUserSession = null;
-            localStorage.removeItem('agrocampo_session');
+        window.logoutUser = () => {
+            userRole = 'guest';
+            currentProducerProfile = null;
             updateRoleUI();
-            showToast("Sesión cerrada correctamente");
+            showToast("Sesión cerrada");
         };
 
-        function saveLocalSession() {
-            if (currentUserSession) {
-                localStorage.setItem('agrocampo_session', JSON.stringify(currentUserSession));
-            }
-        }
-
-        function loadLocalSession() {
-            const saved = localStorage.getItem('agrocampo_session');
-            if (saved) {
-                try {
-                    currentUserSession = JSON.parse(saved);
-                } catch(e) { console.error(e); }
-            }
-        }
-
-        // Role & UI Display Update
         function updateRoleUI() {
-            const badge = document.getElementById('current-user-display');
+            const roleBadge = document.getElementById('current-role-indicator');
             const adminDashboard = document.getElementById('admin-dashboard-view');
             const producerCard = document.getElementById('producer-status-card');
-            const authControls = document.getElementById('header-auth-controls');
 
-            if (!currentUserSession) {
-                badge.innerText = "Modo Visitante / Comprador";
-                badge.className = "bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full font-bold border border-slate-700";
-                adminDashboard.classList.add('hidden');
-                producerCard.classList.add('hidden');
-
-                authControls.innerHTML = `
-                    <button onclick="openModal('modal-auth')" class="bg-agro-600 hover:bg-agro-500 text-white font-bold px-3 py-1 rounded-lg text-[11px] flex items-center gap-1 transition">
-                        <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Iniciar Sesión / Registrarse
-                    </button>
-                    <button onclick="openAdminLoginModal()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
-                        <i data-lucide="lock" class="w-3.5 h-3.5"></i> Portal Administrador
-                    </button>
-                `;
-            } else if (currentUserSession.role === 'admin') {
-                badge.innerText = "Panel Administrador Activo";
-                badge.className = "bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full font-bold border border-amber-500/40";
+            if (userRole === 'admin') {
+                roleBadge.innerHTML = `<i data-lucide="shield-check" class="inline w-3 h-3"></i> Administrador`;
+                roleBadge.className = "bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full font-bold border border-amber-500/40";
                 adminDashboard.classList.remove('hidden');
                 producerCard.classList.add('hidden');
                 renderAdminDashboard();
-
-                authControls.innerHTML = `
-                    <span class="text-xs text-amber-400 font-bold">Admin Conectado</span>
-                    <button onclick="logoutSession()" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 px-3 py-1 rounded-lg text-[11px] font-bold border border-rose-500/30 transition">
-                        Salir
-                    </button>
-                `;
-            } else if (currentUserSession.role === 'producer') {
-                const statusTxt = currentUserSession.status === 'approved' ? 'Aprobado' : 'Pendiente';
-                badge.innerText = `Distribuidor: ${currentUserSession.name} (${statusTxt})`;
-                badge.className = currentUserSession.status === 'approved' 
-                    ? "bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/40"
-                    : "bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full font-bold border border-amber-500/40";
-
+            } else if (userRole === 'producer') {
+                roleBadge.innerHTML = `<i data-lucide="tractor" class="inline w-3 h-3"></i> Productor / Distribuidor`;
+                roleBadge.className = "bg-agro-500/20 text-agro-300 px-2.5 py-0.5 rounded-full font-bold border border-agro-500/40";
                 adminDashboard.classList.add('hidden');
                 producerCard.classList.remove('hidden');
-                renderProducerStatusCard();
-
-                authControls.innerHTML = `
-                    <span class="text-xs text-slate-300 font-semibold truncate max-w-[120px]">${currentUserSession.name}</span>
-                    <button onclick="logoutSession()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg text-[11px] font-bold border border-slate-700 transition">
-                        Cerrar Sesión
-                    </button>
-                `;
+                renderProducerStatusBanner();
+            } else {
+                roleBadge.innerText = "Invitado / Comprador";
+                roleBadge.className = "bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold";
+                adminDashboard.classList.add('hidden');
+                producerCard.classList.add('hidden');
             }
             lucide.createIcons();
             updateProducerHeaderButton();
@@ -741,81 +551,127 @@
 
         function updateProducerHeaderButton() {
             const container = document.getElementById('producer-status-btn-area');
-            if (currentUserSession && currentUserSession.role === 'admin') {
-                container.innerHTML = `<span class="text-xs text-amber-400 font-bold px-3 py-1 bg-amber-500/10 rounded-xl border border-amber-500/20">Administrador Central</span>`;
-            } else if (currentUserSession && currentUserSession.role === 'producer') {
-                if (currentUserSession.status === 'approved') {
-                    container.innerHTML = `<button onclick="openModal('modal-post')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow font-bold"><i data-lucide="badge-check" class="w-4 h-4"></i> Publicar Rubro</button>`;
+            if (userRole === 'admin') {
+                container.innerHTML = `<span class="text-xs text-amber-400 font-bold px-3 py-1 bg-amber-500/10 rounded-xl border border-amber-500/20">Modo Administrador</span>`;
+            } else if (userRole === 'producer' && currentProducerProfile) {
+                if (currentProducerProfile.status === 'approved') {
+                    container.innerHTML = `<span class="text-xs text-emerald-400 font-bold px-3 py-1 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-1"><i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Dist. Autorizado</span>`;
                 } else {
-                    container.innerHTML = `<button onclick="openModal('modal-membership')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Reportar Pago ($5)</button>`;
+                    container.innerHTML = `<button onclick="openModal('modal-membership')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Pago Pendiente ($5)</button>`;
                 }
             } else {
-                container.innerHTML = `<button onclick="openModal('modal-auth')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-100"><i data-lucide="award" class="inline w-3.5 h-3.5"></i> Membresía Distribuidor ($5/mes)</button>`;
+                container.innerHTML = `<button onclick="openModal('modal-auth')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-100"><i data-lucide="award" class="inline w-3.5 h-3.5"></i> Membresía Productor ($5/mes)</button>`;
             }
             lucide.createIcons();
         }
 
         // Producer Status Banner Display
-        function renderProducerStatusCard() {
+        function renderProducerStatusBanner() {
             const card = document.getElementById('producer-status-card');
-            if (!currentUserSession || currentUserSession.role !== 'producer') return;
+            if (!currentProducerProfile) return;
 
-            if (currentUserSession.status === 'pending') {
+            if (currentProducerProfile.status === 'pending') {
                 card.className = "rounded-3xl p-5 border bg-amber-500/10 border-amber-500/30 text-amber-200 space-y-2";
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
                             <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
-                            <strong class="text-sm text-white">Estado: Pago Móvil Pendiente de Verificación</strong>
+                            <strong class="text-sm text-white">Estado de Cuenta: Pendiente de Aprobación</strong>
                         </div>
-                        <button onclick="openModal('modal-membership')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl">Reportar Referencia</button>
+                        <button onclick="openModal('modal-membership')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl">Revisar Pago Móvil</button>
                     </div>
-                    <p class="text-xs text-slate-300">Referencia ingresada: <strong>#${currentUserSession.paymentRef || 'No enviada aún'}</strong>. Una vez que el Administrador valide tu transferencia de $5 USD, tu cuenta quedará activada inmediatamente para publicar.</p>
+                    <p class="text-xs text-slate-300">Has registrado la referencia de Pago Móvil <strong>#${currentProducerProfile.paymentRef || 'N/A'}</strong>. El Administrador verificará tu transacción para activar tu perfil de publicación.</p>
                 `;
-            } else if (currentUserSession.status === 'approved') {
+            } else if (currentProducerProfile.status === 'approved') {
                 card.className = "rounded-3xl p-5 border bg-emerald-500/10 border-emerald-500/30 text-emerald-200 space-y-2";
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
                             <i data-lucide="badge-check" class="w-5 h-5 text-emerald-400"></i>
-                            <strong class="text-sm text-white">Distribuidor Verificado: ${currentUserSession.name}</strong>
+                            <strong class="text-sm text-white">Productor Autorizado: ${currentProducerProfile.name}</strong>
                         </div>
-                        <button onclick="openModal('modal-post')" class="px-3.5 py-1.5 bg-agro-600 hover:bg-agro-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md">
+                        <button onclick="openModal('modal-post')" class="px-3.5 py-1.5 bg-agro-600 hover:bg-agro-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5">
                             <i data-lucide="plus-circle" class="w-4 h-4"></i> Publicar Rubro Ahora
                         </button>
                     </div>
-                    <p class="text-xs text-slate-300">Tu membresía está activa. Todos los rubros que publiques se mostrarán en tiempo real a los compradores con tu botón directo a WhatsApp.</p>
+                    <p class="text-xs text-slate-300">Tu membresía está activa. Puedes publicar todos tus rubros agrícolas al mayor y detal en todo el país.</p>
                 `;
             }
             lucide.createIcons();
         }
 
+        // Producer Registration Submission
+        window.handleProducerRegister = async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const name = document.getElementById('reg-name').value;
+            const ci = document.getElementById('reg-ci').value;
+            const state = document.getElementById('reg-state').value;
+            const phone = document.getElementById('reg-phone').value;
+
+            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', currentUser.uid);
+
+            const producerData = {
+                userId: currentUser.uid,
+                name: name,
+                ci: ci,
+                state: state,
+                phone: phone,
+                status: 'pending',
+                paymentRef: '',
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await setDoc(producerDocRef, producerData);
+                userRole = 'producer';
+                closeModal('modal-auth');
+                updateRoleUI();
+                openModal('modal-membership');
+                showToast("Registro guardado. Por favor reporta tu Pago Móvil de $5.");
+            } catch (err) {
+                console.error(err);
+                showToast("Error al registrar");
+            }
+        };
+
         // Submit Payment Ref
         window.handlePaymentSubmit = async (e) => {
             e.preventDefault();
-            if (!currentUserSession || currentUserSession.role !== 'producer') return;
+            if (!currentUser || !currentProducerProfile) return;
 
-            const ref = document.getElementById('pay-ref').value.trim();
-            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', currentUserSession.id);
+            const ref = document.getElementById('pay-ref').value;
+            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', currentUser.uid);
 
             try {
                 await updateDoc(producerDocRef, {
                     paymentRef: ref,
                     status: 'pending'
                 });
-
-                currentUserSession.paymentRef = ref;
-                currentUserSession.status = 'pending';
-                saveLocalSession();
                 closeModal('modal-membership');
-                updateRoleUI();
 
-                const waMessage = `Hola%20Admin%20AgroCampo,%20he%20realizado%20el%20Pago%20Móvil%20de%20Membresía.%0A*Nombre:*%20${encodeURIComponent(currentUserSession.name)}%0A*Referencia:*%20${ref}`;
-                showToast("Referencia registrada. Abriendo WhatsApp para notificación...");
+                const waMessage = `Hola%20Admin%20AgroCampo,%20he%20realizado%20el%20Pago%20Móvil%20de%20Membresía.%0A*Nombre:*%20${encodeURIComponent(currentProducerProfile.name)}%0A*Referencia:*%20${ref}`;
+                showToast("Referencia enviada. Abriendo WhatsApp...");
                 setTimeout(() => { window.open(`https://wa.me/${ADMIN_PHONE}?text=${waMessage}`, '_blank'); }, 1000);
             } catch (err) {
                 console.error(err);
-                showToast("Error al guardar referencia");
+            }
+        };
+
+        // Admin Login Handle
+        window.handleAdminLogin = (e) => {
+            e.preventDefault();
+            const user = document.getElementById('admin-user').value;
+            const pass = document.getElementById('admin-pass').value;
+
+            if (user === 'admin@agrocampo.ve' && pass === '26603499') {
+                userRole = 'admin';
+                closeModal('modal-auth');
+                updateRoleUI();
+                showToast("Bienvenido Administrador");
+            } else {
+                alert("Credenciales de Administrador incorrectas");
             }
         };
 
@@ -830,10 +686,10 @@
             document.getElementById('admin-pending-count').innerText = pendingItems.length;
             document.getElementById('admin-active-count').innerText = approvedItems.length;
 
-            // Render Pending Payments
+            // Render Pending
             pendingList.innerHTML = '';
             if (pendingItems.length === 0) {
-                pendingList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay solicitudes o pagos pendientes por verificar.</p>`;
+                pendingList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay solicitudes pendientes.</p>`;
             } else {
                 pendingItems.forEach(p => {
                     const item = document.createElement('div');
@@ -842,13 +698,13 @@
                         <div class="text-xs space-y-0.5">
                             <div class="font-extrabold text-white text-sm">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.ci})</span></div>
                             <div class="text-slate-300">📍 Estado: <strong>${p.state}</strong> | 📞 WhatsApp: ${p.phone}</div>
-                            <div class="text-amber-400 font-mono font-bold">💳 Ref Pago Móvil: ${p.paymentRef || 'Pendiente por registrar'}</div>
+                            <div class="text-amber-400 font-mono font-bold">💳 Ref Pago Móvil: ${p.paymentRef || 'No ingresada aún'}</div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button onclick="adminApproveProducer('${p.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition shadow">
-                                <i data-lucide="check-circle" class="w-4 h-4"></i> Aceptar Pago & Activar
+                            <button onclick="adminApproveProducer('${p.userId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> Aprobar Membresía
                             </button>
-                            <button onclick="adminRejectProducer('${p.id}')" class="px-2.5 py-1.5 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 rounded-xl text-xs font-bold transition">
+                            <button onclick="adminRejectProducer('${p.userId}')" class="px-2.5 py-1.5 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 rounded-xl text-xs font-bold transition">
                                 Rechazar
                             </button>
                         </div>
@@ -857,10 +713,10 @@
                 });
             }
 
-            // Render Approved Producers
+            // Render Approved
             approvedList.innerHTML = '';
             if (approvedItems.length === 0) {
-                approvedList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay distribuidores activos actualmente.</p>`;
+                approvedList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay distribuidores activos.</p>`;
             } else {
                 approvedItems.forEach(p => {
                     const item = document.createElement('div');
@@ -868,9 +724,8 @@
                     item.innerHTML = `
                         <div>
                             <strong class="text-white">${p.name}</strong> (${p.state}) - <span class="text-emerald-400 font-semibold">Autorizado</span>
-                            <div class="text-[10px] text-slate-400 font-mono">WhatsApp: ${p.phone}</div>
                         </div>
-                        <button onclick="adminRevokeProducer('${p.id}')" class="text-rose-400 hover:underline text-[11px]">Suspender Usuario</button>
+                        <button onclick="adminRevokeProducer('${p.userId}')" class="text-rose-400 hover:underline text-[11px]">Suspender</button>
                     `;
                     approvedList.appendChild(item);
                 });
@@ -879,20 +734,20 @@
         }
 
         // Admin Action Handlers
-        window.adminApproveProducer = async (targetId) => {
+        window.adminApproveProducer = async (targetUserId) => {
             try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetId);
+                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
                 await updateDoc(pRef, { status: 'approved' });
-                showToast("Distribuidor APROBADO y Activado correctamente");
+                showToast("Distribuidor APROBADO exitosamente");
             } catch (err) {
                 console.error(err);
             }
         };
 
-        window.adminRejectProducer = async (targetId) => {
-            if (!confirm("¿Deseas rechazar esta solicitud de membresía?")) return;
+        window.adminRejectProducer = async (targetUserId) => {
+            if (!confirm("¿Deseas rechazar esta solicitud?")) return;
             try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetId);
+                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
                 await updateDoc(pRef, { status: 'rejected' });
                 showToast("Solicitud rechazada");
             } catch (err) {
@@ -900,9 +755,9 @@
             }
         };
 
-        window.adminRevokeProducer = async (targetId) => {
+        window.adminRevokeProducer = async (targetUserId) => {
             try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetId);
+                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
                 await updateDoc(pRef, { status: 'pending' });
                 showToast("Membresía suspendida");
             } catch (err) {
@@ -910,56 +765,47 @@
             }
         };
 
-        // Post Product Guard & Real-Time Publication
+        // Post Product Guard & Submission
         window.handlePostProductClick = () => {
-            if (!currentUserSession) {
-                alert("Debes iniciar sesión con tu cuenta de Distribuidor para publicar.");
-                openModal('modal-auth');
-                return;
-            }
-
-            if (currentUserSession.role === 'admin') {
+            if (userRole === 'admin') {
                 openModal('modal-post');
-            } else if (currentUserSession.role === 'producer') {
-                if (currentUserSession.status === 'approved') {
+            } else if (userRole === 'producer') {
+                if (currentProducerProfile && currentProducerProfile.status === 'approved') {
                     openModal('modal-post');
                 } else {
-                    alert("Tu pago de membresía está pendiente de aprobación por parte del Administrador.");
+                    alert("Tu usuario requiere aprobación previa del Administrador para publicar rubros.");
                     openModal('modal-membership');
                 }
+            } else {
+                alert("Debes registrarte como Productor/Distribuidor para publicar rubros.");
+                openModal('modal-auth');
             }
         };
 
         window.handleProductPost = async (e) => {
             e.preventDefault();
-            if (!currentUserSession) return;
+            if (!currentUser) return;
 
             const newId = 'prod-' + Date.now();
             const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', newId);
 
-            const producerName = currentUserSession.name || "Distribuidor AgroCampo";
-            const producerPhone = currentUserSession.phone || ADMIN_PHONE;
-            const producerState = currentUserSession.state || "Venezuela";
-
-            // Clean phone number for WhatsApp link
-            let cleanPhone = producerPhone.replace(/[^0-9]/g, '');
-            if (cleanPhone.startsWith('0')) {
-                cleanPhone = '58' + cleanPhone.substring(1);
-            }
+            const producerName = currentProducerProfile ? currentProducerProfile.name : "Administrador AgroCampo";
+            const producerPhone = currentProducerProfile ? currentProducerProfile.phone : ADMIN_PHONE;
+            const producerState = currentProducerProfile ? currentProducerProfile.state : "Distrito Capital";
 
             const productData = {
                 id: newId,
-                producerId: currentUserSession.id || 'admin',
-                title: document.getElementById('post-title').value.trim(),
+                producerId: currentUser.uid,
+                title: document.getElementById('post-title').value,
                 category: document.getElementById('post-category').value,
                 tradeType: document.getElementById('post-trade-type').value,
                 priceUsd: parseFloat(document.getElementById('post-price').value),
-                unit: document.getElementById('post-unit').value.trim(),
+                unit: document.getElementById('post-unit').value,
                 state: producerState,
-                phone: cleanPhone,
+                phone: producerPhone,
                 producer: producerName,
-                image: document.getElementById('post-image').value.trim() || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
-                description: document.getElementById('post-desc').value.trim(),
+                image: document.getElementById('post-image').value || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
+                description: document.getElementById('post-desc').value,
                 createdAt: new Date().toISOString()
             };
 
@@ -967,14 +813,13 @@
                 await setDoc(prodRef, productData);
                 closeModal('modal-post');
                 document.getElementById('form-post-product').reset();
-                showToast("¡Rubro publicado EN TIEMPO REAL!");
+                showToast("¡Rubro publicado exitosamente!");
             } catch (err) {
                 console.error(err);
-                showToast("Error al publicar rubro");
             }
         };
 
-        // Marketplace Filter & Real Time Render Engine
+        // Marketplace Render Engine
         window.applyFilters = () => {
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const categoryVal = document.getElementById('category-filter').value;
@@ -1012,8 +857,6 @@
                 const card = document.createElement('div');
                 card.className = "bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition flex flex-col group";
 
-                const waUrl = `https://wa.me/${p.phone}?text=Hola,%20vengo%20de%20AgroCampo%20Venezuela%20y%20quiero%20comprar:%20*${encodeURIComponent(p.title)}*`;
-
                 card.innerHTML = `
                     <div class="relative h-44 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'">
@@ -1035,7 +878,7 @@
                         <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between">
                                 <div class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
-                                    <span class="font-bold text-slate-900 dark:text-white">${p.producer}</span>
+                                    <span>${p.producer}</span>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-base font-extrabold text-slate-900 dark:text-white">${p.priceUsd.toFixed(2)} USD</div>
@@ -1043,9 +886,8 @@
                                 </div>
                             </div>
 
-                            <!-- Botón WhatsApp Directo al Distribuidor -->
-                            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-emerald-600/20">
-                                <i data-lucide="message-circle" class="w-4 h-4"></i> Contactar WhatsApp Distribuidor
+                            <a href="https://wa.me/${p.phone}?text=Hola,%20vengo%20de%20AgroCampo%20Venezuela%20y%20quiero%20comprar:%20*${encodeURIComponent(p.title)}*" target="_blank" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp Productor
                             </a>
                         </div>
                     </div>
@@ -1055,23 +897,23 @@
             lucide.createIcons();
         }
 
-        // Auth Modal Tab Switch
-        window.switchAuthTab = (tab) => {
-            const btnL = document.getElementById('tab-auth-login');
-            const btnR = document.getElementById('tab-auth-reg');
-            const formL = document.getElementById('form-login-producer');
-            const formR = document.getElementById('form-register-producer');
+        // Auth Tab Switch
+        window.switchAuthMode = (mode) => {
+            const btnP = document.getElementById('auth-tab-producer');
+            const btnA = document.getElementById('auth-tab-admin');
+            const formP = document.getElementById('form-auth-producer');
+            const formA = document.getElementById('form-auth-admin');
 
-            if (tab === 'login') {
-                btnL.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm font-bold";
-                btnR.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white";
-                formL.classList.remove('hidden');
-                formR.classList.add('hidden');
+            if (mode === 'producer') {
+                btnP.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm font-bold";
+                btnA.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900";
+                formP.classList.remove('hidden');
+                formA.classList.add('hidden');
             } else {
-                btnR.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm font-bold";
-                btnL.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white";
-                formR.classList.remove('hidden');
-                formL.classList.add('hidden');
+                btnA.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-amber-500 dark:text-white shadow-sm font-bold";
+                btnP.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900";
+                formA.classList.remove('hidden');
+                formP.classList.add('hidden');
             }
         };
 
