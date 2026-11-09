@@ -1,968 +1,291 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroCampo Venezuela - Sistema de Distribuidores y Mercado Agrícola</title>
-    <!-- Tailwind CSS -->
+    <title>AgroCampo Venezuela - Microapp</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        agro: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
-                            950: '#052e16',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .glass-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-        }
-        .dark .glass-header {
-            background: rgba(15, 23, 42, 0.95);
-        }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        .hidden-panel { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col selection:bg-agro-500 selection:text-white">
+<body class="bg-gray-100 font-sans min-h-screen pb-12">
 
-    <!-- Role Switcher & BCV Bar -->
-    <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div class="flex items-center space-x-3">
-                <span class="inline-flex items-center gap-1 font-semibold text-agro-400">
-                    <i data-lucide="shield" class="w-3.5 h-3.5"></i> Control de Sesión:
-                </span>
-                <span id="current-role-indicator" class="bg-agro-500/20 text-agro-300 px-2 py-0.5 rounded-full font-bold border border-agro-500/30">
-                    Invitado / Comprador
-                </span>
-            </div>
-
-            <!-- Quick Testing Controls -->
+    <!-- Header -->
+    <header class="bg-green-700 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide cursor-pointer" id="appTitle">🌾 AgroCampo VE</h1>
             <div class="flex items-center space-x-2">
-                <button onclick="openModal('modal-auth')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
-                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Iniciar Sesión / Registro
-                </button>
-                <button onclick="quickSwitchAdmin()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1 rounded-lg text-[11px] font-extrabold flex items-center gap-1 transition">
-                    <i data-lucide="key-round" class="w-3.5 h-3.5"></i> Entrar como Admin
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Navigation Header -->
-    <header class="glass-header border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            
-            <!-- Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-agro-700 to-agro-500 flex items-center justify-center text-white shadow-lg shadow-agro-600/30">
-                    <i data-lucide="sprout" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-extrabold tracking-tight flex items-center gap-1.5 text-slate-900 dark:text-white">
-                        AgroCampo <span class="text-xs px-2 py-0.5 rounded-full bg-agro-100 dark:bg-agro-900/60 text-agro-700 dark:text-agro-300 border border-agro-300 dark:border-agro-700 font-bold">VENEZUELA</span>
-                    </h1>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Red Agropecuaria de los 24 Estados</p>
-                </div>
-            </div>
-
-            <!-- Header Action Buttons -->
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <div id="producer-status-btn-area">
-                    <button onclick="openModal('modal-auth')" class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shadow-sm bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-100">
-                        <i data-lucide="award" class="w-4 h-4 text-amber-600"></i>
-                        <span class="hidden sm:inline">Membresía Productor ($5/mes)</span>
-                    </button>
-                </div>
-
-                <button onclick="handlePostProductClick()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-agro-600 hover:bg-agro-700 text-white flex items-center gap-1.5 shadow-md shadow-agro-600/20 transition">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Publicar Cosecha</span>
-                </button>
+                <span id="bcvRate" class="text-xs bg-green-800 px-2 py-1 rounded text-green-200">BCV: Cargando...</span>
+                <button onclick="toggleAdminModal()" class="text-xs bg-green-900 hover:bg-green-800 px-2 py-1 rounded text-gray-300">Admin</button>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main class="max-w-4xl mx-auto p-4 space-y-6">
 
-        <!-- ADMIN DASHBOARD PANEL (Visible when logged in as Admin) -->
-        <div id="admin-dashboard-view" class="hidden bg-slate-900 border-2 border-amber-500 text-white rounded-3xl p-6 shadow-2xl space-y-5">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                        <i data-lucide="shield-check" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-base font-extrabold text-amber-400">PANEL ADMINISTRADOR CENTRAL</h2>
-                        <p class="text-xs text-slate-400">Aprobación de Distribuidores y Control de la Plataforma</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                    <button onclick="switchAdminTab('pending')" id="tab-btn-pending" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950">
-                        Solicitudes Pendientes (<span id="admin-pending-count">0</span>)
-                    </button>
-                    <button onclick="switchAdminTab('approved')" id="tab-btn-approved" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
-                        Distribuidores Activos (<span id="admin-active-count">0</span>)
-                    </button>
-                    <button onclick="logoutUser()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 border border-rose-500/30">
-                        Salir Admin
-                    </button>
-                </div>
-            </div>
+        <!-- Selector de Estados -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona un Estado (24 Estados de Venezuela):</label>
+            <select id="stateSelect" onchange="filterProducts()" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                <option value="TODOS">🇻🇪 Todos los Estados</option>
+                <option value="Amazonas">Amazonas</option>
+                <option value="Anzoátegui">Anzoátegui</option>
+                <option value="Apure">Apure</option>
+                <option value="Aragua">Aragua</option>
+                <option value="Barinas">Barinas</option>
+                <option value="Bolívar">Bolívar</option>
+                <option value="Carabobo">Carabobo</option>
+                <option value="Cojedes">Cojedes</option>
+                <option value="Delta Amacuro">Delta Amacuro</option>
+                <option value="Distrito Capital">Distrito Capital</option>
+                <option value="Falcón">Falcón</option>
+                <option value="Guárico">Guárico</option>
+                <option value="Lara">Lara</option>
+                <option value="Mérida">Mérida</option>
+                <option value="Miranda">Miranda</option>
+                <option value="Monagas">Monagas</option>
+                <option value="Nueva Esparta">Nueva Esparta</option>
+                <option value="Portuguesa">Portuguesa</option>
+                <option value="Sucre">Sucre</option>
+                <option value="Táchira">Táchira</option>
+                <option value="Trujillo">Trujillo</option>
+                <option value="La Guaira">La Guaira</option>
+                <option value="Yaracuy">Yaracuy</option>
+                <option value="Zulia">Zulia</option>
+            </select>
+        </section>
 
-            <!-- Tab Content: Pending Requests -->
-            <div id="admin-tab-pending" class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Solicitudes de Membresía por Verificar (Pago Móvil $5)</h3>
-                <div id="admin-pending-list" class="space-y-2">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-
-            <!-- Tab Content: Active Approved Producers -->
-            <div id="admin-tab-approved" class="hidden space-y-3">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Productores y Distribuidores Autorizados</h3>
-                <div id="admin-approved-list" class="space-y-2">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
+        <!-- Pestañas de Navegación -->
+        <div class="flex border-b border-gray-200 bg-white rounded-t-xl overflow-hidden">
+            <button onclick="switchTab('catalog')" id="tabCatalog" class="flex-1 py-3 text-center font-medium border-b-2 border-green-600 text-green-600">Catálogo de Productos</button>
+            <button onclick="switchTab('register')" id="tabRegister" class="flex-1 py-3 text-center font-medium text-gray-500 hover:text-green-600">Registro de Productor</button>
+            <button onclick="switchTab('membership')" id="tabMembership" class="flex-1 py-3 text-center font-medium text-gray-500 hover:text-green-600">Membresía ($5)</button>
         </div>
 
-        <!-- PRODUCER STATUS BANNER (Visible for logged-in producers) -->
-        <div id="producer-status-card" class="hidden rounded-3xl p-5 border space-y-3">
-            <!-- Dynamic Content based on pending/approved -->
-        </div>
-
-        <!-- Search & Category Filters -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-full sm:w-auto text-xs font-semibold">
-                    <button onclick="setTradeFilter('all')" id="trade-all" class="trade-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition bg-white dark:bg-slate-700 text-agro-700 dark:text-white shadow-sm font-bold">
-                        Todos los Rubros
-                    </button>
-                    <button onclick="setTradeFilter('mayor')" id="trade-mayor" class="trade-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-agro-600 flex items-center justify-center gap-1.5">
-                        <i data-lucide="package" class="w-3.5 h-3.5 text-amber-500"></i> Ventas al Mayor
-                    </button>
-                    <button onclick="setTradeFilter('detal')" id="trade-detal" class="trade-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-agro-600 flex items-center justify-center gap-1.5">
-                        <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-agro-500"></i> Ventas al Detal
-                    </button>
-                </div>
-                <div class="text-xs text-slate-500 font-medium">
-                    Publicaciones activas: <strong id="product-count" class="text-slate-900 dark:text-white font-bold">0</strong>
-                </div>
+        <!-- Vista 1: Catálogo -->
+        <section id="viewCatalog" class="space-y-4">
+            <div id="productList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Los productos se cargan dinámicamente -->
             </div>
+        </section>
 
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div class="sm:col-span-5 relative">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
-                    <input type="text" id="search-input" oninput="applyFilters()" placeholder="Buscar producto, finca, estado..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-agro-500">
+        <!-- Vista 2: Registro de Productor -->
+        <section id="viewRegister" class="hidden-panel bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Registro de Productor / Distribuidor</h2>
+            <form id="producerForm" onsubmit="handleProducerRegister(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase">Nombre Completo / Empresa</label>
+                    <input type="text" id="regName" required class="w-full mt-1 p-2 border rounded-lg focus:ring-green-500 focus:outline-none" placeholder="Ej: Hacienda Los Pinos">
                 </div>
-                <div class="sm:col-span-3">
-                    <select id="category-filter" onchange="applyFilters()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white">
-                        <option value="all">Todas las Categorías</option>
-                        <option value="Hortalizas">Hortalizas</option>
-                        <option value="Verduras">Verduras y Raíces</option>
-                        <option value="Frutas">Frutas</option>
-                        <option value="Legumbres">Legumbres y Granos</option>
-                        <option value="Tubérculos">Tubérculos</option>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase">Teléfono / WhatsApp</label>
+                    <input type="tel" id="regPhone" required class="w-full mt-1 p-2 border rounded-lg focus:ring-green-500 focus:outline-none" placeholder="Ej: 04141234567">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase">Estado de Operación</label>
+                    <select id="regState" required class="w-full mt-1 p-2 border rounded-lg focus:ring-green-500 focus:outline-none">
+                        <option value="">Selecciona tu estado</option>
+                        <option value="Portuguesa">Portuguesa</option>
+                        <option value="Lara">Lara</option>
+                        <option value="Guárico">Guárico</option>
+                        <option value="Zulia">Zulia</option>
+                        <option value="Barinas">Barinas</option>
+                        <!-- Soporta todos los estados -->
                     </select>
                 </div>
-                <div class="sm:col-span-4">
-                    <select id="state-filter" onchange="applyFilters()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white">
-                        <option value="all">🇻🇪 Todos los Estados</option>
-                    </select>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase">Rubros / Productos Principales</label>
+                    <textarea id="regProducts" required class="w-full mt-1 p-2 border rounded-lg focus:ring-green-500 focus:outline-none" rows="2" placeholder="Ej: Maíz blanco, Queso llanero, Fertilizantes"></textarea>
                 </div>
-            </div>
-        </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition">
+                    Completar Registro vía WhatsApp
+                </button>
+            </form>
+        </section>
 
-        <!-- Products Grid -->
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            <!-- Injected via JS -->
-        </div>
-
-        <!-- Empty State -->
-        <div id="empty-state" class="hidden py-16 text-center space-y-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-            <div class="w-16 h-16 bg-agro-50 dark:bg-agro-950 rounded-full flex items-center justify-center mx-auto text-agro-600">
-                <i data-lucide="package-search" class="w-8 h-8"></i>
+        <!-- Vista 3: Membresía y Pago Móvil -->
+        <section id="viewMembership" class="hidden-panel bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+            <h2 class="text-lg font-bold text-gray-800">Suscripción AgroCampo ($5 USD)</h2>
+            <p class="text-sm text-gray-600">Accede al directorio completo de compradores directos y publica tus rubros sin comisiones.</p>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-2 text-sm">
+                <p class="font-bold text-gray-700">Datos para Pago Móvil:</p>
+                <p><span class="text-gray-500">Banco:</span> Banco de Venezuela (0102)</p>
+                <p><span class="text-gray-500">Cédula / RIF:</span> V-12345678</p>
+                <p><span class="text-gray-500">Teléfono:</span> 0414-0000000</p>
+                <p><span class="text-gray-500">Monto en BS:</span> <span id="membershipBsv" class="font-bold text-green-700">Calculando...</span></p>
             </div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Sin ofertas por el momento</h3>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">No hay publicaciones con estos filtros en este momento.</p>
-        </div>
+
+            <button onclick="sendPaymentProof()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition">
+                Notificar Pago por WhatsApp
+            </button>
+        </section>
 
     </main>
 
-    <!-- MODAL 1: Login & Registration Selector -->
-    <div id="modal-auth" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl relative space-y-4">
-            <button onclick="closeModal('modal-auth')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-
-            <div class="text-center space-y-1">
-                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Acceso a AgroCampo</h3>
-                <p class="text-xs text-slate-500">Selecciona tu tipo de cuenta</p>
+    <!-- Modal de Administrador Discreto -->
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-4">
+            <h3 class="text-md font-bold text-gray-800">Acceso Administrador</h3>
+            <input type="password" id="adminPass" placeholder="Clave de acceso" class="w-full p-2 border rounded-lg">
+            <div class="flex space-x-2">
+                <button onclick="loginAdmin()" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold">Entrar</button>
+                <button onclick="toggleAdminModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">Cancelar</button>
             </div>
-
-            <!-- Tabs Auth -->
-            <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-bold">
-                <button onclick="switchAuthMode('producer')" id="auth-tab-producer" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm">
-                    Productor / Distribuidor
-                </button>
-                <button onclick="switchAuthMode('admin')" id="auth-tab-admin" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900">
-                    Administrador
-                </button>
-            </div>
-
-            <!-- Producer Form -->
-            <form id="form-auth-producer" onsubmit="handleProducerRegister(event)" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Nombre Completo o Empresa / Finca:</label>
-                    <input type="text" id="reg-name" required placeholder="Ej: Finca San José / Carlos Mendoza" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Cédula o RIF:</label>
-                    <input type="text" id="reg-ci" required placeholder="Ej: V-18234567" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Estado de Venezuela:</label>
-                    <select id="reg-state" required class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                        <!-- Injected -->
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Teléfono WhatsApp de Contacto:</label>
-                    <input type="tel" id="reg-phone" required placeholder="Ej: 04264601981" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition">
-                    Registrarme como Productor
-                </button>
-            </form>
-
-            <!-- Admin Login Form -->
-            <form id="form-auth-admin" onsubmit="handleAdminLogin(event)" class="hidden space-y-3">
-                <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-600 dark:text-amber-400">
-                    Credencial predeterminada: <strong>admin@agrocampo.ve</strong> / Clave: <strong>26603499</strong>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Usuario / Email Admin:</label>
-                    <input type="text" id="admin-user" required value="admin@agrocampo.ve" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Clave de Acceso:</label>
-                    <input type="password" id="admin-pass" required value="26603499" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs transition">
-                    Ingresar como Administrador
-                </button>
-            </form>
         </div>
     </div>
 
-    <!-- MODAL 2: Membership Pago Movil Payment details -->
-    <div id="modal-membership" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl relative space-y-4">
-            <button onclick="closeModal('modal-membership')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+    <!-- Script principal de la Microapp -->
+    <script>
+        let currentBcvRate = 36.5; // Tasa por defecto de respaldo
+        const adminKey = "1234"; // Clave del administrador
+        const whatsappAdmin = "584140000000"; // Reemplaza con tu número de WhatsApp
 
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 flex items-center justify-center">
-                    <i data-lucide="smartphone" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Pago de Membresía ($5/mes)</h3>
-                    <p class="text-xs text-amber-600 font-semibold">Exclusivo por Pago Móvil</p>
-                </div>
-            </div>
-
-            <!-- EXCLUSIVE PAGO MOVIL CARD -->
-            <div class="bg-slate-950 text-white p-4 rounded-2xl space-y-2 border border-slate-800">
-                <div class="flex items-center justify-between text-xs font-bold text-amber-400 border-b border-slate-800 pb-2">
-                    <span><i data-lucide="qr-code" class="inline w-3.5 h-3.5"></i> DATOS PAGO MÓVIL OFICIAL</span>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">Venezuela</span>
-                </div>
-                <div class="text-xs space-y-1 font-mono pt-1 text-slate-300">
-                    <p><strong class="text-slate-400">Banco:</strong> Banco de Venezuela (0102)</p>
-                    <p><strong class="text-slate-400">C.I.:</strong> 26.603.499</p>
-                    <p><strong class="text-slate-400">Teléfono:</strong> 0426-4601981</p>
-                    <p><strong class="text-slate-400">Monto:</strong> $5 USD (A tasa BCV oficial)</p>
-                </div>
-            </div>
-
-            <form id="form-submit-payment" onsubmit="handlePaymentSubmit(event)" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Número de Referencia Pago Móvil (6 dígitos):</label>
-                    <input type="text" id="pay-ref" required placeholder="Ej: 981240" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Monto Pagado ($ USD):</label>
-                    <input type="number" step="0.01" id="pay-amount" value="5.00" readonly class="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs font-mono">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    Enviar Referencia al Administrador
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: Product Post Modal (Available only when Producer is Approved) -->
-    <div id="modal-post" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModal('modal-post')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-agro-600 text-white flex items-center justify-center">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Publicar Cosecha / Rubro</h3>
-                    <p class="text-xs text-emerald-600 font-semibold">Productor Autorizado</p>
-                </div>
-            </div>
-
-            <form id="form-post-product" onsubmit="handleProductPost(event)" class="space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Nombre del Rubro:</label>
-                        <input type="text" id="post-title" required placeholder="Ej: Tomate Perita de Primera" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Categoría:</label>
-                        <select id="post-category" required class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                            <option value="Hortalizas">Hortalizas</option>
-                            <option value="Verduras">Verduras y Raíces</option>
-                            <option value="Frutas">Frutas</option>
-                            <option value="Legumbres">Legumbres y Granos</option>
-                            <option value="Tubérculos">Tubérculos</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Modalidad:</label>
-                        <select id="post-trade-type" required class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                            <option value="mayor">Venta al Mayor</option>
-                            <option value="detal">Venta al Detal</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Precio ($ USD):</label>
-                        <input type="number" step="0.01" id="post-price" required placeholder="15.00" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold mb-1">Unidad:</label>
-                        <input type="text" id="post-unit" required placeholder="Cesta 20kg / Saco" class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">URL Foto (Opcional):</label>
-                    <input type="url" id="post-image" placeholder="https://..." class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold mb-1">Descripción / Disponibilidad:</label>
-                    <textarea id="post-desc" rows="3" required placeholder="Indica cantidad total disponible o zona de despacho..." class="w-full bg-slate-50 dark:bg-slate-800 border rounded-xl px-3 py-2 text-xs"></textarea>
-                </div>
-
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-agro-600 hover:bg-agro-700 text-white font-extrabold text-xs transition">
-                    Publicar Producto en Tiempo Real
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-2xl text-xs font-semibold shadow-2xl border border-slate-800 flex items-center gap-2.5 z-50">
-        <i data-lucide="check-circle-2" class="w-4 h-4 text-agro-400"></i>
-        <span id="toast-message">Mensaje</span>
-    </div>
-
-    <!-- Firebase Script Engine -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global Setup
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'agrocampo-ve-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : { apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo-app" };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // State variables
-        let currentUser = null;
-        let userRole = 'guest'; // 'guest', 'admin', 'producer'
-        let currentProducerProfile = null;
-        
-        let allProducers = [];
-        let allProducts = [];
-        let currentTradeFilter = 'all';
-        const BCV_RATE = 36.50;
-        const ADMIN_PHONE = "584264601981";
-
-        const VENEZUELA_STATES = [
-            "Amazonas", "Anzoátegui", "Apure", "Aragua", "Barinas", "Bolívar",
-            "Carabobo", "Cojedes", "Delta Amacuro", "Distrito Capital", "Falcón",
-            "Guárico", "Lara", "Mérida", "Miranda", "Monagas", "Nueva Esparta",
-            "Portuguesa", "Sucre", "Táchira", "Trujillo", "La Guaira", "Yaracuy", "Zulia"
+        // Productos de ejemplo iniciales
+        let initialProducts = [
+            { id: 1, title: "Saco de Fertilizant NPK", priceUsd: 25, state: "Portuguesa", type: "Al mayor" },
+            { id: 2, title: "Queso Llanero por Kilo", priceUsd: 4.5, state: "Guárico", type: "Al detal" },
+            { id: 3, title: "Maíz Amarillo (Tonelada)", priceUsd: 210, state: "Barinas", type: "Al mayor" }
         ];
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            populateStates();
-            setupFirebase();
-        });
+        let products = JSON.parse(localStorage.getItem('agrocampo_products')) || initialProducts;
 
-        async function setupFirebase() {
+        // Cargar Tasa BCV (vía API pública)
+        async function fetchBcvRate() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+                const data = await response.json();
+                if (data && data.promedio) {
+                    currentBcvRate = parseFloat(data.promedio);
+                    document.getElementById('bcvRate').innerText = `BCV: ${currentBcvRate.toFixed(2)} Bs`;
+                    updateMembershipPrice();
                 }
-            } catch (err) {
-                console.error("Auth init error:", err);
+            } catch (error) {
+                document.getElementById('bcvRate').innerText = `BCV (Ref): ${currentBcvRate.toFixed(2)} Bs`;
+                updateMembershipPrice();
             }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    startFirestoreSync();
-                }
-            });
         }
 
-        // Firestore Sync with Path Compliance (RULE 1: /artifacts/{appId}/public/data/...)
-        function startFirestoreSync() {
-            if (!currentUser) return;
-
-            // 1. Sync Producers Collection
-            const producersCol = collection(db, 'artifacts', appId, 'public', 'data', 'producers');
-            onSnapshot(producersCol, (snap) => {
-                allProducers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Update active user profile state
-                if (userRole === 'producer') {
-                    currentProducerProfile = allProducers.find(p => p.userId === currentUser.uid);
-                    renderProducerStatusBanner();
-                }
-
-                if (userRole === 'admin') {
-                    renderAdminDashboard();
-                }
-            }, err => console.error(err));
-
-            // 2. Sync Products Collection
-            const productsCol = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-            onSnapshot(productsCol, (snap) => {
-                allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                applyFilters();
-            }, err => console.error(err));
+        function updateMembershipPrice() {
+            const bsvAmount = (5 * currentBcvRate).toFixed(2);
+            document.getElementById('membershipBsv').innerText = `${bsvAmount} Bs (a tasa BCV)`;
         }
 
-        function populateStates() {
-            const filterSel = document.getElementById('state-filter');
-            const regSel = document.getElementById('reg-state');
+        // Navegación por Pestañas
+        function switchTab(tabName) {
+            document.getElementById('viewCatalog').classList.add('hidden-panel');
+            document.getElementById('viewRegister').classList.add('hidden-panel');
+            document.getElementById('viewMembership').classList.add('hidden-panel');
 
-            VENEZUELA_STATES.forEach(st => {
-                filterSel.appendChild(new Option(`📍 ${st}`, st));
-                regSel.appendChild(new Option(st, st));
-            });
+            document.getElementById('tabCatalog').className = "flex-1 py-3 text-center font-medium text-gray-500 hover:text-green-600";
+            document.getElementById('tabRegister').className = "flex-1 py-3 text-center font-medium text-gray-500 hover:text-green-600";
+            document.getElementById('tabMembership').className = "flex-1 py-3 text-center font-medium text-gray-500 hover:text-green-600";
+
+            if (tabName === 'catalog') {
+                document.getElementById('viewCatalog').classList.remove('hidden-panel');
+                document.getElementById('tabCatalog').className = "flex-1 py-3 text-center font-medium border-b-2 border-green-600 text-green-600";
+            } else if (tabName === 'register') {
+                document.getElementById('viewRegister').classList.remove('hidden-panel');
+                document.getElementById('tabRegister').className = "flex-1 py-3 text-center font-medium border-b-2 border-green-600 text-green-600";
+            } else if (tabName === 'membership') {
+                document.getElementById('viewMembership').classList.remove('hidden-panel');
+                document.getElementById('tabMembership').className = "flex-1 py-3 text-center font-medium border-b-2 border-green-600 text-green-600";
+            }
         }
 
-        // User Role Management
-        window.quickSwitchAdmin = () => {
-            userRole = 'admin';
-            updateRoleUI();
-            showToast("Acceso como Administrador activado");
-        };
-
-        window.logoutUser = () => {
-            userRole = 'guest';
-            currentProducerProfile = null;
-            updateRoleUI();
-            showToast("Sesión cerrada");
-        };
-
-        function updateRoleUI() {
-            const roleBadge = document.getElementById('current-role-indicator');
-            const adminDashboard = document.getElementById('admin-dashboard-view');
-            const producerCard = document.getElementById('producer-status-card');
-
-            if (userRole === 'admin') {
-                roleBadge.innerHTML = `<i data-lucide="shield-check" class="inline w-3 h-3"></i> Administrador`;
-                roleBadge.className = "bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full font-bold border border-amber-500/40";
-                adminDashboard.classList.remove('hidden');
-                producerCard.classList.add('hidden');
-                renderAdminDashboard();
-            } else if (userRole === 'producer') {
-                roleBadge.innerHTML = `<i data-lucide="tractor" class="inline w-3 h-3"></i> Productor / Distribuidor`;
-                roleBadge.className = "bg-agro-500/20 text-agro-300 px-2.5 py-0.5 rounded-full font-bold border border-agro-500/40";
-                adminDashboard.classList.add('hidden');
-                producerCard.classList.remove('hidden');
-                renderProducerStatusBanner();
-            } else {
-                roleBadge.innerText = "Invitado / Comprador";
-                roleBadge.className = "bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold";
-                adminDashboard.classList.add('hidden');
-                producerCard.classList.add('hidden');
-            }
-            lucide.createIcons();
-            updateProducerHeaderButton();
-        }
-
-        function updateProducerHeaderButton() {
-            const container = document.getElementById('producer-status-btn-area');
-            if (userRole === 'admin') {
-                container.innerHTML = `<span class="text-xs text-amber-400 font-bold px-3 py-1 bg-amber-500/10 rounded-xl border border-amber-500/20">Modo Administrador</span>`;
-            } else if (userRole === 'producer' && currentProducerProfile) {
-                if (currentProducerProfile.status === 'approved') {
-                    container.innerHTML = `<span class="text-xs text-emerald-400 font-bold px-3 py-1 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-1"><i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Dist. Autorizado</span>`;
-                } else {
-                    container.innerHTML = `<button onclick="openModal('modal-membership')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Pago Pendiente ($5)</button>`;
-                }
-            } else {
-                container.innerHTML = `<button onclick="openModal('modal-auth')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-100"><i data-lucide="award" class="inline w-3.5 h-3.5"></i> Membresía Productor ($5/mes)</button>`;
-            }
-            lucide.createIcons();
-        }
-
-        // Producer Status Banner Display
-        function renderProducerStatusBanner() {
-            const card = document.getElementById('producer-status-card');
-            if (!currentProducerProfile) return;
-
-            if (currentProducerProfile.status === 'pending') {
-                card.className = "rounded-3xl p-5 border bg-amber-500/10 border-amber-500/30 text-amber-200 space-y-2";
-                card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
-                            <strong class="text-sm text-white">Estado de Cuenta: Pendiente de Aprobación</strong>
-                        </div>
-                        <button onclick="openModal('modal-membership')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl">Revisar Pago Móvil</button>
-                    </div>
-                    <p class="text-xs text-slate-300">Has registrado la referencia de Pago Móvil <strong>#${currentProducerProfile.paymentRef || 'N/A'}</strong>. El Administrador verificará tu transacción para activar tu perfil de publicación.</p>
-                `;
-            } else if (currentProducerProfile.status === 'approved') {
-                card.className = "rounded-3xl p-5 border bg-emerald-500/10 border-emerald-500/30 text-emerald-200 space-y-2";
-                card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="badge-check" class="w-5 h-5 text-emerald-400"></i>
-                            <strong class="text-sm text-white">Productor Autorizado: ${currentProducerProfile.name}</strong>
-                        </div>
-                        <button onclick="openModal('modal-post')" class="px-3.5 py-1.5 bg-agro-600 hover:bg-agro-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Publicar Rubro Ahora
-                        </button>
-                    </div>
-                    <p class="text-xs text-slate-300">Tu membresía está activa. Puedes publicar todos tus rubros agrícolas al mayor y detal en todo el país.</p>
-                `;
-            }
-            lucide.createIcons();
-        }
-
-        // Producer Registration Submission
-        window.handleProducerRegister = async (e) => {
-            e.preventDefault();
-            if (!currentUser) return;
-
-            const name = document.getElementById('reg-name').value;
-            const ci = document.getElementById('reg-ci').value;
-            const state = document.getElementById('reg-state').value;
-            const phone = document.getElementById('reg-phone').value;
-
-            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', currentUser.uid);
-
-            const producerData = {
-                userId: currentUser.uid,
-                name: name,
-                ci: ci,
-                state: state,
-                phone: phone,
-                status: 'pending',
-                paymentRef: '',
-                createdAt: new Date().toISOString()
-            };
-
-            try {
-                await setDoc(producerDocRef, producerData);
-                userRole = 'producer';
-                closeModal('modal-auth');
-                updateRoleUI();
-                openModal('modal-membership');
-                showToast("Registro guardado. Por favor reporta tu Pago Móvil de $5.");
-            } catch (err) {
-                console.error(err);
-                showToast("Error al registrar");
-            }
-        };
-
-        // Submit Payment Ref
-        window.handlePaymentSubmit = async (e) => {
-            e.preventDefault();
-            if (!currentUser || !currentProducerProfile) return;
-
-            const ref = document.getElementById('pay-ref').value;
-            const producerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', currentUser.uid);
-
-            try {
-                await updateDoc(producerDocRef, {
-                    paymentRef: ref,
-                    status: 'pending'
-                });
-                closeModal('modal-membership');
-
-                const waMessage = `Hola%20Admin%20AgroCampo,%20he%20realizado%20el%20Pago%20Móvil%20de%20Membresía.%0A*Nombre:*%20${encodeURIComponent(currentProducerProfile.name)}%0A*Referencia:*%20${ref}`;
-                showToast("Referencia enviada. Abriendo WhatsApp...");
-                setTimeout(() => { window.open(`https://wa.me/${ADMIN_PHONE}?text=${waMessage}`, '_blank'); }, 1000);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        // Admin Login Handle
-        window.handleAdminLogin = (e) => {
-            e.preventDefault();
-            const user = document.getElementById('admin-user').value;
-            const pass = document.getElementById('admin-pass').value;
-
-            if (user === 'admin@agrocampo.ve' && pass === '26603499') {
-                userRole = 'admin';
-                closeModal('modal-auth');
-                updateRoleUI();
-                showToast("Bienvenido Administrador");
-            } else {
-                alert("Credenciales de Administrador incorrectas");
-            }
-        };
-
-        // Admin Dashboard Render Logic
-        function renderAdminDashboard() {
-            const pendingList = document.getElementById('admin-pending-list');
-            const approvedList = document.getElementById('admin-approved-list');
-
-            const pendingItems = allProducers.filter(p => p.status === 'pending');
-            const approvedItems = allProducers.filter(p => p.status === 'approved');
-
-            document.getElementById('admin-pending-count').innerText = pendingItems.length;
-            document.getElementById('admin-active-count').innerText = approvedItems.length;
-
-            // Render Pending
-            pendingList.innerHTML = '';
-            if (pendingItems.length === 0) {
-                pendingList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay solicitudes pendientes.</p>`;
-            } else {
-                pendingItems.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = "p-3.5 bg-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-slate-700";
-                    item.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <div class="font-extrabold text-white text-sm">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.ci})</span></div>
-                            <div class="text-slate-300">📍 Estado: <strong>${p.state}</strong> | 📞 WhatsApp: ${p.phone}</div>
-                            <div class="text-amber-400 font-mono font-bold">💳 Ref Pago Móvil: ${p.paymentRef || 'No ingresada aún'}</div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="adminApproveProducer('${p.userId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition">
-                                <i data-lucide="check-circle" class="w-4 h-4"></i> Aprobar Membresía
-                            </button>
-                            <button onclick="adminRejectProducer('${p.userId}')" class="px-2.5 py-1.5 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 rounded-xl text-xs font-bold transition">
-                                Rechazar
-                            </button>
-                        </div>
-                    `;
-                    pendingList.appendChild(item);
-                });
-            }
-
-            // Render Approved
-            approvedList.innerHTML = '';
-            if (approvedItems.length === 0) {
-                approvedList.innerHTML = `<p class="text-xs text-slate-400 italic">No hay distribuidores activos.</p>`;
-            } else {
-                approvedItems.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = "p-3 bg-slate-800/60 rounded-xl flex items-center justify-between border border-slate-700/50 text-xs";
-                    item.innerHTML = `
-                        <div>
-                            <strong class="text-white">${p.name}</strong> (${p.state}) - <span class="text-emerald-400 font-semibold">Autorizado</span>
-                        </div>
-                        <button onclick="adminRevokeProducer('${p.userId}')" class="text-rose-400 hover:underline text-[11px]">Suspender</button>
-                    `;
-                    approvedList.appendChild(item);
-                });
-            }
-            lucide.createIcons();
-        }
-
-        // Admin Action Handlers
-        window.adminApproveProducer = async (targetUserId) => {
-            try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
-                await updateDoc(pRef, { status: 'approved' });
-                showToast("Distribuidor APROBADO exitosamente");
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        window.adminRejectProducer = async (targetUserId) => {
-            if (!confirm("¿Deseas rechazar esta solicitud?")) return;
-            try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
-                await updateDoc(pRef, { status: 'rejected' });
-                showToast("Solicitud rechazada");
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        window.adminRevokeProducer = async (targetUserId) => {
-            try {
-                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'producers', targetUserId);
-                await updateDoc(pRef, { status: 'pending' });
-                showToast("Membresía suspendida");
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        // Post Product Guard & Submission
-        window.handlePostProductClick = () => {
-            if (userRole === 'admin') {
-                openModal('modal-post');
-            } else if (userRole === 'producer') {
-                if (currentProducerProfile && currentProducerProfile.status === 'approved') {
-                    openModal('modal-post');
-                } else {
-                    alert("Tu usuario requiere aprobación previa del Administrador para publicar rubros.");
-                    openModal('modal-membership');
-                }
-            } else {
-                alert("Debes registrarte como Productor/Distribuidor para publicar rubros.");
-                openModal('modal-auth');
-            }
-        };
-
-        window.handleProductPost = async (e) => {
-            e.preventDefault();
-            if (!currentUser) return;
-
-            const newId = 'prod-' + Date.now();
-            const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', newId);
-
-            const producerName = currentProducerProfile ? currentProducerProfile.name : "Administrador AgroCampo";
-            const producerPhone = currentProducerProfile ? currentProducerProfile.phone : ADMIN_PHONE;
-            const producerState = currentProducerProfile ? currentProducerProfile.state : "Distrito Capital";
-
-            const productData = {
-                id: newId,
-                producerId: currentUser.uid,
-                title: document.getElementById('post-title').value,
-                category: document.getElementById('post-category').value,
-                tradeType: document.getElementById('post-trade-type').value,
-                priceUsd: parseFloat(document.getElementById('post-price').value),
-                unit: document.getElementById('post-unit').value,
-                state: producerState,
-                phone: producerPhone,
-                producer: producerName,
-                image: document.getElementById('post-image').value || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
-                description: document.getElementById('post-desc').value,
-                createdAt: new Date().toISOString()
-            };
-
-            try {
-                await setDoc(prodRef, productData);
-                closeModal('modal-post');
-                document.getElementById('form-post-product').reset();
-                showToast("¡Rubro publicado exitosamente!");
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        // Marketplace Render Engine
-        window.applyFilters = () => {
-            const searchVal = document.getElementById('search-input').value.toLowerCase();
-            const categoryVal = document.getElementById('category-filter').value;
-            const stateVal = document.getElementById('state-filter').value;
-
-            const filtered = allProducts.filter(p => {
-                const matchSearch = p.title.toLowerCase().includes(searchVal) || p.description.toLowerCase().includes(searchVal);
-                const matchCategory = categoryVal === 'all' || p.category === categoryVal;
-                const matchState = stateVal === 'all' || p.state === stateVal;
-                const matchTrade = currentTradeFilter === 'all' || p.tradeType === currentTradeFilter;
-
-                return matchSearch && matchCategory && matchState && matchTrade;
-            });
-
-            renderGrid(filtered);
-        };
-
-        function renderGrid(items) {
-            const grid = document.getElementById('products-grid');
-            const empty = document.getElementById('empty-state');
-            document.getElementById('product-count').innerText = items.length;
-
-            grid.innerHTML = '';
+        // Renderizar Productos
+        function renderProducts(items) {
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+            
             if (items.length === 0) {
-                grid.classList.add('hidden');
-                empty.classList.remove('hidden');
+                list.innerHTML = `<p class="text-center text-gray-500 py-4 col-span-2">No hay productos disponibles para este estado.</p>`;
                 return;
             }
 
-            grid.classList.remove('hidden');
-            empty.classList.add('hidden');
-
-            items.forEach(p => {
-                const priceBs = (p.priceUsd * BCV_RATE).toFixed(2);
-                const card = document.createElement('div');
-                card.className = "bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition flex flex-col group";
-
-                card.innerHTML = `
-                    <div class="relative h-44 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'">
-                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase backdrop-blur-md ${p.tradeType === 'mayor' ? 'bg-amber-500 text-slate-950' : 'bg-agro-600 text-white'}">
-                            ${p.tradeType === 'mayor' ? '📦 Al Mayor' : '🛒 Al Detal'}
-                        </span>
-                        <span class="absolute bottom-3 left-3 bg-slate-950/80 text-white text-[10px] font-medium px-2.5 py-0.5 rounded-full backdrop-blur-md flex items-center gap-1">
-                            <i data-lucide="map-pin" class="w-3 h-3 text-agro-400"></i> ${p.state}
-                        </span>
-                    </div>
-
-                    <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+            items.forEach(item => {
+                const priceBs = (item.priceUsd * currentBcvRate).toFixed(2);
+                list.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
                         <div>
-                            <span class="text-[11px] font-semibold text-agro-600 dark:text-agro-400">${p.category}</span>
-                            <h4 class="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">${p.title}</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">${p.description}</p>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${item.type === 'Al mayor' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}">${item.type}</span>
+                            <h3 class="font-bold text-gray-800 mt-1">${item.title}</h3>
+                            <p class="text-xs text-gray-500">📍 Estado: ${item.state}</p>
                         </div>
-
-                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <div class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
-                                    <span>${p.producer}</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-base font-extrabold text-slate-900 dark:text-white">${p.priceUsd.toFixed(2)} USD</div>
-                                    <div class="text-[10px] font-mono text-slate-400">Bs. ${priceBs} / ${p.unit}</div>
-                                </div>
-                            </div>
-
-                            <a href="https://wa.me/${p.phone}?text=Hola,%20vengo%20de%20AgroCampo%20Venezuela%20y%20quiero%20comprar:%20*${encodeURIComponent(p.title)}*" target="_blank" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
-                                <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp Productor
-                            </a>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-green-700">$${item.priceUsd}</p>
+                            <p class="text-xs text-gray-500">${priceBs} Bs</p>
                         </div>
                     </div>
                 `;
-                grid.appendChild(card);
             });
-            lucide.createIcons();
         }
 
-        // Auth Tab Switch
-        window.switchAuthMode = (mode) => {
-            const btnP = document.getElementById('auth-tab-producer');
-            const btnA = document.getElementById('auth-tab-admin');
-            const formP = document.getElementById('form-auth-producer');
-            const formA = document.getElementById('form-auth-admin');
-
-            if (mode === 'producer') {
-                btnP.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-agro-600 dark:text-white shadow-sm font-bold";
-                btnA.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900";
-                formP.classList.remove('hidden');
-                formA.classList.add('hidden');
+        // Filtrar Productos por Estado
+        function filterProducts() {
+            const selectedState = document.getElementById('stateSelect').value;
+            if (selectedState === 'TODOS') {
+                renderProducts(products);
             } else {
-                btnA.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-amber-500 dark:text-white shadow-sm font-bold";
-                btnP.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900";
-                formA.classList.remove('hidden');
-                formP.classList.add('hidden');
+                const filtered = products.filter(p => p.state === selectedState);
+                renderProducts(filtered);
             }
-        };
-
-        // Admin Tab Switch
-        window.switchAdminTab = (tab) => {
-            const btnP = document.getElementById('tab-btn-pending');
-            const btnA = document.getElementById('tab-btn-approved');
-            const tabP = document.getElementById('admin-tab-pending');
-            const tabA = document.getElementById('admin-tab-approved');
-
-            if (tab === 'pending') {
-                btnP.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950";
-                btnA.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700";
-                tabP.classList.remove('hidden');
-                tabA.classList.add('hidden');
-            } else {
-                btnA.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950";
-                btnP.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700";
-                tabA.classList.remove('hidden');
-                tabP.classList.add('hidden');
-            }
-        };
-
-        // Utility Helpers
-        window.setTradeFilter = (type) => {
-            currentTradeFilter = type;
-            document.querySelectorAll('.trade-btn').forEach(b => {
-                b.className = "trade-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-agro-600 flex items-center justify-center gap-1.5";
-            });
-            const active = document.getElementById(`trade-${type}`);
-            if (active) active.className = "trade-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition bg-white dark:bg-slate-700 text-agro-700 dark:text-white shadow-sm font-bold";
-            applyFilters();
-        };
-
-        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        window.resetFilters = () => {
-            document.getElementById('search-input').value = '';
-            document.getElementById('category-filter').value = 'all';
-            document.getElementById('state-filter').value = 'all';
-            setTradeFilter('all');
-        };
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
+
+        // Registro de Productor enviado a WhatsApp
+        function handleProducerRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            const state = document.getElementById('regState').value;
+            const items = document.getElementById('regProducts').value;
+
+            // Guardar localmente
+            const newProducer = { name, phone, state, items, date: new Date().toLocaleDateString() };
+            let producers = JSON.parse(localStorage.getItem('agrocampo_producers')) || [];
+            producers.push(newProducer);
+            localStorage.setItem('agrocampo_producers', JSON.stringify(producers));
+
+            // Notificación vía WhatsApp
+            const message = `*NUEVO REGISTRO EN AGROCAMPO*%0A%0A*Nombre:* ${name}%0A*Teléfono:* ${phone}%0A*Estado:* ${state}%0A*Rubros:* ${items}`;
+            window.open(`https://api.whatsapp.com/send?phone=${whatsappAdmin}&text=${message}`, '_blank');
+            
+            alert('¡Registro exitoso! Se enviará tu ficha por WhatsApp.');
+            document.getElementById('producerForm').reset();
+        }
+
+        // Notificar Pago de Membresía
+        function sendPaymentProof() {
+            const message = `*NOTIFICACIÓN DE PAGO MEMBRESÍA ($5)*%0A%0AHola, he realizado el pago móvil de la membresía de AgroCampo Venezuela. Solicito la activación de mi perfil.`;
+            window.open(`https://api.whatsapp.com/send?phone=${whatsappAdmin}&text=${message}`, '_blank');
+        }
+
+        // Acceso Administrador
+        function toggleAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function loginAdmin() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === adminKey) {
+                alert('¡Bienvenido al Panel Administrador!');
+                toggleAdminModal();
+                // Aquí puedes agregar funciones de edición directa si lo deseas
+            } else {
+                alert('Clave incorrecta');
+            }
+        }
+
+        // Inicialización
+        window.onload = () => {
+            fetchBcvRate();
+            renderProducts(products);
+        };
     </script>
 </body>
 </html>
